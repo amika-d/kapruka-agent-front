@@ -21,8 +21,8 @@ export const metadata: Metadata = {
   title: "Kiyanna - Agentic Search & Discovery",
   description: "A generative UI e-commerce concierge",
   icons: {
-    icon: "/kapruka.jpeg",
-    apple: "/kapruka.jpeg",
+    icon: "/k-logo.jpg",
+    apple: "/k-logo.jpg",
   },
 };
 
@@ -34,7 +34,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={`dark ${inter.variable} ${jetbrainsMono.variable}`}>
       <head>
-        <link rel="icon" href="/kapruka.jpeg" />
+        <link rel="icon" href="/k-logo.jpg" />
         <link
           href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
           rel="stylesheet"
