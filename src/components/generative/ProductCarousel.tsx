@@ -2,7 +2,7 @@
 
 import { useRef, useState, useEffect, useCallback } from "react";
 import ProductCard from "./ProductCard";
-import { ProductCardType } from "@/types/schemas";
+import { ProductCardType } from "../../types/schemas";
 
 export default function ProductCarousel({ items }: { items: ProductCardType[] }) {
   const scrollRef = useRef<HTMLDivElement>(null);

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { ThinkingEvent } from "@/types/schemas";
+import { ThinkingEvent } from "../../types/schemas";
 
 interface ThinkingProcessProps {
   events: ThinkingEvent[];
@@ -88,24 +88,22 @@ export default function ThinkingProcess({ events, isStreaming }: ThinkingProcess
                 <div key={idx} className="flex items-start gap-2 py-[3px]">
                   {/* Status indicator */}
                   <span
-                    className={`text-[12px] mt-[2px] shrink-0 ${
-                      isDone
+                    className={`text-[12px] mt-[2px] shrink-0 ${isDone
                         ? "text-emerald-500/70"
                         : isRunning
-                        ? "text-primary/70"
-                        : isError
-                        ? "text-red-400/70"
-                        : "text-on-surface-variant/20"
-                    }`}
+                          ? "text-primary/70"
+                          : isError
+                            ? "text-red-400/70"
+                            : "text-on-surface-variant/20"
+                      }`}
                   >
                     {isDone ? "✓" : isRunning ? "⟳" : isError ? "✗" : "○"}
                   </span>
 
                   {/* Step icon */}
                   <span
-                    className={`material-symbols-outlined text-[13px] mt-[1px] shrink-0 ${
-                      isRunning ? "text-on-surface-variant/50" : "text-on-surface-variant/25"
-                    }`}
+                    className={`material-symbols-outlined text-[13px] mt-[1px] shrink-0 ${isRunning ? "text-on-surface-variant/50" : "text-on-surface-variant/25"
+                      }`}
                   >
                     {getStepIcon(event)}
                   </span>
@@ -113,9 +111,8 @@ export default function ThinkingProcess({ events, isStreaming }: ThinkingProcess
                   {/* Text */}
                   <div className="min-w-0 flex-1">
                     <span
-                      className={`text-[13px] ${
-                        isRunning ? "text-on-surface-variant/70" : "text-on-surface-variant/40"
-                      }`}
+                      className={`text-[13px] ${isRunning ? "text-on-surface-variant/70" : "text-on-surface-variant/40"
+                        }`}
                     >
                       <span className="font-medium">{event.step}</span>
                       {event.detail && (

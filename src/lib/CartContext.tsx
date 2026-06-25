@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState, useCallback } from "react";
-import type { ProductCardType } from "@/types/schemas";
+import type { ProductCardType } from "../types/schemas";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -55,7 +55,7 @@ function loadCart(): CartState {
 function saveCart(state: CartState) {
   try {
     sessionStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-  } catch {}
+  } catch { }
 }
 
 // ─── Context ──────────────────────────────────────────────────────────────────
@@ -84,10 +84,10 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       const existing = prev.items.find((i) => i.product_id === product.product_id);
       const items = existing
         ? prev.items.map((i) =>
-            i.product_id === product.product_id
-              ? { ...i, quantity: i.quantity + 1 }
-              : i
-          )
+          i.product_id === product.product_id
+            ? { ...i, quantity: i.quantity + 1 }
+            : i
+        )
         : [...prev.items, { ...product, quantity: 1 }];
       return { ...prev, items };
     });

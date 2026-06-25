@@ -1,4 +1,4 @@
-import { ChatMessage, ThinkingEvent } from "@/types/schemas";
+import { ChatMessage, ThinkingEvent } from "../../types/schemas";
 import ProductCarousel from "../generative/ProductCarousel";
 import ThinkingProcess from "./ThinkingProcess";
 import { useEffect, useRef } from "react";

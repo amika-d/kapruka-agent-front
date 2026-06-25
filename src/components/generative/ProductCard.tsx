@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ProductCardType } from "@/types/schemas";
+import { ProductCardType } from "../../types/schemas";
 import { useCart } from "../../lib/CartContext";
 
 export default function ProductCard({
@@ -23,8 +23,8 @@ export default function ProductCard({
   return (
     <div
       className={`min-w-[85%] md:min-w-[48%] snap-center group relative overflow-hidden rounded-2xl border transition-all duration-500 bg-white/[0.02] backdrop-blur-sm ${isHero
-          ? "border-primary/30 hover:border-primary/60 hover:shadow-lg hover:shadow-primary/20"
-          : "border-white/10 hover:border-primary/40 hover:shadow-lg hover:shadow-primary/20"
+        ? "border-primary/30 hover:border-primary/60 hover:shadow-lg hover:shadow-primary/20"
+        : "border-white/10 hover:border-primary/40 hover:shadow-lg hover:shadow-primary/20"
         }`}
     >
       {/* Image */}
