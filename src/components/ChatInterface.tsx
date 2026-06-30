@@ -14,7 +14,6 @@ interface ChatInterfaceProps {
 export default function ChatInterface({ chatId, initialQuery }: ChatInterfaceProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isStreaming, setIsStreaming] = useState(false);
-  const [events, setEvents] = useState<ThinkingEvent[]>([]);
   const [sessionId] = useState(() => chatId || crypto.randomUUID());
   const [history, setHistory] = useState([]);
   const { cart, itemCount, setIsOpen: openCart } = useCart();
@@ -54,7 +53,6 @@ export default function ChatInterface({ chatId, initialQuery }: ChatInterfacePro
     const apiURL = process.env.NEXT_PUBLIC_API_URL || "";
 
     setMessages((prev) => [...prev, userMsg, agentMsg]);
-    setEvents([]); // Clear previous thinking events
     setIsStreaming(true);
 
     try {
@@ -114,8 +112,36 @@ export default function ChatInterface({ chatId, initialQuery }: ChatInterfacePro
                       : msg
                   )
                 );
+              } else if (data.type === "tracking_card") {
+                setMessages((prev) =>
+                  prev.map((msg) =>
+                    msg.id === agentMsgId
+                      ? { ...msg, ui: { component: "OrderTrackingCard", props: { data: data.data } } }
+                      : msg
+                  )
+                );
+              } else if (data.type === "pay_link") {
+                setMessages((prev) =>
+                  prev.map((msg) =>
+                    msg.id === agentMsgId
+                      ? { ...msg, ui: { component: "PayLinkCard", props: { url: data.url } } }
+                      : msg
+                  )
+                );
               } else if (data.type === "thinking") {
-                setEvents((prev) => [...prev, data.payload]);
+                // Store thinking events inside the message itself (not global state)
+                const event: ThinkingEvent = {
+                  step: data.step,
+                  detail: data.detail,
+                  status: data.status ?? "done",
+                };
+                setMessages((prev) =>
+                  prev.map((msg) =>
+                    msg.id === agentMsgId
+                      ? { ...msg, thinking: [...(msg.thinking ?? []), event] }
+                      : msg
+                  )
+                );
               }
             } catch (e) {
               console.error("Failed to parse SSE JSON:", dataStr);
@@ -190,7 +216,6 @@ export default function ChatInterface({ chatId, initialQuery }: ChatInterfacePro
 
         <ChatFeed
           messages={messages}
-          thinkingEvents={events}
           isStreaming={isStreaming}
         />
         <ChatInput onSendMessage={handleSendMessage} disabled={isStreaming} />

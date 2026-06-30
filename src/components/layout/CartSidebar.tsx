@@ -1,6 +1,7 @@
 "use client";
 
 import { useCart } from "../../lib/CartContext";
+import { useRouter } from "next/navigation";
 
 export default function CartSidebar() {
   const {
@@ -17,10 +18,11 @@ export default function CartSidebar() {
   } = useCart();
 
   const API = process.env.NEXT_PUBLIC_API_URL || "";
+  const router = useRouter();
 
-  const handleCheckout = async () => {
-    // TODO: wire up real checkout endpoint
-    alert("Checkout coming soon!");
+  const handleCheckout = () => {
+    setIsOpen(false);
+    router.push("/checkout");
   };
 
   return (

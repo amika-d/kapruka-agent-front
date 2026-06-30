@@ -5,16 +5,15 @@ import { useEffect, useRef } from "react";
 
 interface ChatFeedProps {
   messages: ChatMessage[];
-  thinkingEvents: ThinkingEvent[];
   isStreaming: boolean;
 }
 
-export default function ChatFeed({ messages, thinkingEvents, isStreaming }: ChatFeedProps) {
+export default function ChatFeed({ messages, isStreaming }: ChatFeedProps) {
   const endRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, thinkingEvents]);
+  }, [messages]);
 
   const formatTime = (timestamp?: string) => {
     if (timestamp) return timestamp;
@@ -25,11 +24,6 @@ export default function ChatFeed({ messages, thinkingEvents, isStreaming }: Chat
     });
   };
 
-  // Find the index of the last user message to show thinking events after it
-  const lastUserMsgIndex = messages.reduce(
-    (acc, msg, idx) => (msg.role === "user" ? idx : acc),
-    -1
-  );
 
   return (
     <div className="flex-1 mt-20 pb-48 max-w-5xl mx-auto w-full px-gutter">
@@ -63,11 +57,13 @@ export default function ChatFeed({ messages, thinkingEvents, isStreaming }: Chat
           ) : (
             /* ── Agent Response (clean, no bubble — Claude-style) ── */
             <div className="flex flex-col gap-2 max-w-[90%] my-6">
-              {/* Show thinking events before the first assistant message after the last user message */}
-              {msgIdx === lastUserMsgIndex + 1 &&
-                thinkingEvents.length > 0 && (
-                  <ThinkingProcess events={thinkingEvents} isStreaming={isStreaming} />
-                )}
+              {/* Thinking process — stored on each message individually */}
+              {(msg.thinking?.length ?? 0) > 0 && (
+                <ThinkingProcess
+                  events={msg.thinking!}
+                  isStreaming={isStreaming && msgIdx === messages.length - 1}
+                />
+              )}
 
               {/* Agent text — no box, just clean text */}
               {msg.content && (
