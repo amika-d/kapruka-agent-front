@@ -117,7 +117,7 @@ export default function ThinkingProcess({ events, isStreaming }: ThinkingProcess
                       className={`text-[13px] ${isRunning ? "text-on-surface-variant/70" : "text-on-surface-variant/40"
                         }`}
                     >
-                      <span className="font-medium">{event.step ?? "—"}</span>
+                      <span className="font-medium">{event.step || "Processing..."}</span>
                       {event.detail && (
                         <span className="ml-1 font-normal">— {event.detail}</span>
                       )}
