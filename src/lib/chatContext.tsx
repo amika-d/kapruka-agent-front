@@ -1,5 +1,5 @@
 "use client"
-import { createContext, useContext, useState, ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { ChatMessage, ThinkingEvent } from "../types/schemas";
 
 
@@ -21,7 +21,13 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     const [messages, setMessages] = useState<ChatMessage[]>([]);
     const [events, setEvents] = useState<ThinkingEvent[]>([]);
     const [history, setHistory] = useState<any[]>([]);
-    const [sessionId, setSessionId] = useState(() => crypto.randomUUID());
+    // Initialize as empty string — set on client only to avoid SSR hydration mismatch
+    const [sessionId, setSessionId] = useState<string>('');
+
+    useEffect(() => {
+        // Only generate a UUID on the client, never on the server
+        if (!sessionId) setSessionId(crypto.randomUUID());
+    }, []);
 
     return (
         <ChatContext.Provider value={{
