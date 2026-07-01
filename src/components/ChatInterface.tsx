@@ -17,14 +17,19 @@ export default function ChatInterface({ chatId, initialQuery }: ChatInterfacePro
   const [isStreaming, setIsStreaming] = useState(false);
   const { cart, itemCount, setIsOpen: openCart } = useCart();
 
-  useEffect(() => {
-    if (chatId && chatId !== sessionId) {
-      setSessionId(chatId);
-    }
-  }, [chatId, sessionId, setSessionId]);
-
   const hasSentInitialQuery = useRef(false);
   const historyLoaded = useRef(false);
+
+  // When chatId changes, reset all chat state for the new session
+  useEffect(() => {
+    if (!chatId) return;
+    // Always clear messages and history when mounting a new chat page
+    setMessages([]);
+    setHistory([]);
+    setSessionId(chatId);
+    hasSentInitialQuery.current = false;
+    historyLoaded.current = false;
+  }, [chatId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Load existing session history when visiting /c/[id]
   useEffect(() => {
@@ -162,11 +167,11 @@ export default function ChatInterface({ chatId, initialQuery }: ChatInterfacePro
   };
 
   useEffect(() => {
-    if (initialQuery && !hasSentInitialQuery.current) {
+    if (initialQuery && !hasSentInitialQuery.current && sessionId === chatId) {
       hasSentInitialQuery.current = true;
       handleSendMessage(initialQuery);
     }
-  }, [initialQuery]);
+  }, [initialQuery, sessionId]);
 
   return (
     <>
