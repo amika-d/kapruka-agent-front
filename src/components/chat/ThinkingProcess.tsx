@@ -31,7 +31,8 @@ export default function ThinkingProcess({ events, isStreaming }: ThinkingProcess
 
   const getStepIcon = (event: ThinkingEvent) => {
     if (event.icon) return event.icon;
-    const step = event.step.toLowerCase();
+    const step = (event.step ?? "").toLowerCase();
+    if (!step) return "neurology";
     if (step.includes("rout")) return "route";
     if (step.includes("search") || step.includes("kapruka_search")) return "travel_explore";
     if (step.includes("product") || step.includes("kapruka_get")) return "shopping_bag";
@@ -116,7 +117,7 @@ export default function ThinkingProcess({ events, isStreaming }: ThinkingProcess
                       className={`text-[13px] ${isRunning ? "text-on-surface-variant/70" : "text-on-surface-variant/40"
                         }`}
                     >
-                      <span className="font-medium">{event.step}</span>
+                      <span className="font-medium">{event.step ?? "—"}</span>
                       {event.detail && (
                         <span className="ml-1 font-normal">— {event.detail}</span>
                       )}
