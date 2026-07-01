@@ -5,6 +5,7 @@ import { ChatMessage, ThinkingEvent } from "../types/schemas";
 import ChatFeed from "./chat/ChatFeed";
 import ChatInput from "./chat/ChatInput";
 import { useCart } from "../lib/CartContext";
+import { useChat } from "../lib/chatContext";
 
 interface ChatInterfaceProps {
   chatId: string;
@@ -12,11 +13,15 @@ interface ChatInterfaceProps {
 }
 
 export default function ChatInterface({ chatId, initialQuery }: ChatInterfaceProps) {
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const { messages, setMessages, sessionId, setSessionId, history, setHistory } = useChat();
   const [isStreaming, setIsStreaming] = useState(false);
-  const [sessionId] = useState(() => chatId || crypto.randomUUID());
-  const [history, setHistory] = useState([]);
   const { cart, itemCount, setIsOpen: openCart } = useCart();
+
+  useEffect(() => {
+    if (chatId && chatId !== sessionId) {
+      setSessionId(chatId);
+    }
+  }, [chatId, sessionId, setSessionId]);
 
   const hasSentInitialQuery = useRef(false);
   const historyLoaded = useRef(false);
@@ -41,7 +46,7 @@ export default function ChatInterface({ chatId, initialQuery }: ChatInterfacePro
           setMessages(loaded);
         }
       })
-      .catch(() => {});
+      .catch(() => { });
   }, [chatId]);
 
   const handleSendMessage = async (text: string) => {
