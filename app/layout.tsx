@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { CartProvider } from "../src/lib/CartContext";
+import { ChatProvider } from "../src/lib/chatContext";
 import CartSidebar from "../src/components/layout/CartSidebar";
 import CartFab from "../src/components/layout/CartFab";
 
@@ -41,11 +42,15 @@ export default function RootLayout({
         />
       </head>
       <body className="font-body-md antialiased text-on-background">
-        <CartProvider>
-          {children}
-          <CartSidebar />
-          <CartFab />
-        </CartProvider>
+        <ChatProvider>
+          <CartProvider>
+
+            {children}
+            <CartSidebar />
+            <CartFab />
+          </CartProvider>
+        </ChatProvider>
+
       </body>
     </html>
   );
