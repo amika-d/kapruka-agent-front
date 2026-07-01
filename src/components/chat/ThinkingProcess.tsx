@@ -12,12 +12,11 @@ export default function ThinkingProcess({ events, isStreaming }: ThinkingProcess
   const [isExpanded, setIsExpanded] = useState(true);
   const [elapsed, setElapsed] = useState(0);
 
-  if (events.length === 0 && !isStreaming) return null;
-
+  // Compute derived values before hooks — hooks must always run in same order
   const allDone = events.length > 0 && events.every((e) => e.status === "done");
   const isThinking = isStreaming && !allDone;
 
-  // Timer for "Thinking for Xs"
+  // Timer for "Thinking for Xs" — must be above any early return
   useEffect(() => {
     if (!isThinking) return;
     const start = Date.now();
@@ -26,6 +25,9 @@ export default function ThinkingProcess({ events, isStreaming }: ThinkingProcess
     }, 1000);
     return () => clearInterval(interval);
   }, [isThinking]);
+
+  // Early return AFTER all hooks have been called
+  if (events.length === 0 && !isStreaming) return null;
 
   const getStepIcon = (event: ThinkingEvent) => {
     if (event.icon) return event.icon;

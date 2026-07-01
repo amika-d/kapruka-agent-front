@@ -1,3 +1,5 @@
+"use client";
+
 import { ChatMessage, ThinkingEvent } from "../../types/schemas";
 import ProductCarousel from "../generative/ProductCarousel";
 import ThinkingProcess from "./ThinkingProcess";
