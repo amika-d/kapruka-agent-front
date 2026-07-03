@@ -1,6 +1,7 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
+import { useSidebar } from "@/src/lib/SidebarContext";
 
 export default function ChatInput({
   onSendMessage,
@@ -19,6 +20,19 @@ export default function ChatInput({
   const [pendingImage, setPendingImage] = useState<string | null>(null);
   const [imageLoading, setImageLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const { isCollapsed } = useSidebar();
+
+  const adjustHeight = () => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = "auto";
+      textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 160)}px`;
+    }
+  };
+
+  useEffect(() => {
+    adjustHeight();
+  }, [input]);
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -36,7 +50,6 @@ export default function ChatInput({
 
     setPendingImage(base64);
     setImageLoading(false);
-    // Reset file input so the same file can be re-selected
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
@@ -45,22 +58,25 @@ export default function ChatInput({
       onSendMessage(input.trim(), pendingImage ?? undefined);
       setInput("");
       setPendingImage(null);
+      if (textareaRef.current) textareaRef.current.style.height = "auto";
     }
   };
 
   const canSend = (input.trim().length > 0 || !!pendingImage) && !disabled;
 
   return (
-    <footer className={variant === "fixed"
-      ? "fixed bottom-0 left-72 right-0 px-container-padding-desktop bg-gradient-to-t from-background via-background/95 to-transparent pt-10 pb-10 z-50"
-      : "relative w-full max-w-3xl mx-auto"
-    }>
+    <footer
+      className={
+        variant === "fixed"
+          ? `fixed bottom-0 left-0 ${isCollapsed ? "md:left-16" : "md:left-72"} right-0 px-container-padding-desktop bg-gradient-to-t from-background via-background/95 to-transparent pt-10 pb-10 z-50 transition-all duration-300`
+          : "relative w-full max-w-3xl mx-auto"
+      }
+    >
       <div className="max-w-4xl mx-auto relative group">
         {/* Gradient glow behind input */}
-        <div className="absolute -inset-0.5 bg-gradient-to-r from-primary/50 to-secondary/50 rounded-full blur opacity-10 group-focus-within:opacity-30 transition duration-500"></div>
+        <div className="absolute -inset-0.5 bg-gradient-to-r from-primary/50 to-secondary/50 rounded-2xl blur opacity-10 group-focus-within:opacity-30 transition duration-500"></div>
 
-        <div className="relative bg-surface-container-high rounded-full border border-white/10 backdrop-blur-md overflow-hidden">
-
+        <div className="relative bg-surface-container-high rounded-2xl border border-white/10 backdrop-blur-md overflow-hidden transition-all duration-200">
           {/* Image Preview Row — Claude-style, above the text input */}
           {pendingImage && (
             <div className="px-6 pt-4 pb-2">
@@ -101,12 +117,12 @@ export default function ChatInput({
           )}
 
           {/* Input Row */}
-          <div className="flex items-center px-6 py-4">
+          <div className="flex items-start px-6 py-4">
             {/* Upload button */}
             <button
               onClick={() => fileInputRef.current?.click()}
               disabled={disabled || imageLoading}
-              className="text-on-surface-variant/40 hover:text-primary transition-colors mr-4 disabled:opacity-30"
+              className="text-on-surface-variant/40 hover:text-primary transition-colors mr-4 mt-0.5 disabled:opacity-30 shrink-0"
               title="Upload an image"
             >
               <span className="material-symbols-outlined">
@@ -123,9 +139,11 @@ export default function ChatInput({
               onChange={handleFileChange}
             />
 
-            {/* Text input */}
-            <input
-              className="flex-1 bg-transparent border-none focus:ring-0 focus:outline-none text-on-surface placeholder:text-on-surface-variant/30 text-[16px] leading-relaxed"
+            {/* Auto-expanding multiline textarea */}
+            <textarea
+              ref={textareaRef}
+              rows={1}
+              className="flex-1 bg-transparent border-none focus:ring-0 focus:outline-none text-on-surface placeholder:text-on-surface-variant/30 text-[16px] leading-relaxed resize-none py-0.5 max-h-40 overflow-y-auto"
               placeholder={
                 disabled
                   ? "Agent is thinking..."
@@ -133,17 +151,19 @@ export default function ChatInput({
                     ? "Describe what you're looking for…"
                     : "Ask Kiyanna anything..."
               }
-              type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => {
-                if (e.key === "Enter") handleSend();
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSend();
+                }
               }}
               disabled={disabled}
             />
 
             {/* Action buttons */}
-            <div className="flex items-center gap-3 ml-4">
+            <div className="flex items-center gap-3 ml-4 shrink-0">
               <button className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center hover:bg-white/10 transition-colors">
                 <span className="material-symbols-outlined text-on-surface-variant text-xl">
                   mic

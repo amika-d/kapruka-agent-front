@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import ChatInput from "./ChatInput";
+import { useSidebar } from "@/src/lib/SidebarContext";
 
 const TYPEWRITER_PHRASES = [
   "Hello there.",
@@ -41,6 +42,7 @@ function useTypewriter(phrases: string[], typingSpeed = 55, pauseMs = 1600, dele
 export default function NewChatScreen() {
   const [isVisible, setIsVisible] = useState(false);
   const [isLaunching, setIsLaunching] = useState(false);
+  const { isCollapsed, setIsMobileOpen } = useSidebar();
   const router = useRouter();
   const typedText = useTypewriter(TYPEWRITER_PHRASES);
 
@@ -81,8 +83,15 @@ export default function NewChatScreen() {
   return (
     <>
       {/* Top Bar */}
-      <header className="fixed top-0 right-0 left-72 h-20 flex justify-between items-center px-gutter z-20">
-        <div className="flex items-center gap-gutter" />
+      <header className={`fixed top-0 right-0 left-0 ${isCollapsed ? "md:left-16" : "md:left-72"} h-20 flex justify-between items-center px-gutter z-20 transition-all duration-300`}>
+        <div className="flex items-center gap-gutter">
+          <button
+            onClick={() => setIsMobileOpen(true)}
+            className="md:hidden p-2 rounded-lg text-on-surface-variant hover:text-primary hover:bg-white/10 transition-colors"
+          >
+            <span className="material-symbols-outlined text-[24px]">menu</span>
+          </button>
+        </div>
         <div className="flex items-center gap-gutter">
           {/* <button className="p-2 text-on-surface-variant hover:text-primary transition-colors">
             <span className="material-symbols-outlined">notifications</span>
@@ -97,7 +106,7 @@ export default function NewChatScreen() {
         </div>
       </header>
 
-      <main className="flex-1 ml-72 relative min-h-screen overflow-hidden">
+      <main className={`flex-1 ml-0 ${isCollapsed ? "md:ml-16" : "md:ml-72"} relative min-h-screen overflow-hidden transition-all duration-300`}>
         {/* Centered hero + input, fades/collapses out on launch */}
         <div
           className={`flex flex-col items-center px-container-padding-desktop transition-all duration-500 ease-out ${isVisible ? "opacity-100" : "opacity-0"
@@ -189,7 +198,7 @@ export default function NewChatScreen() {
 
         {/* Docked input — fades/slides in at bottom right as the centered one leaves */}
         <div
-          className={`fixed bottom-0 left-72 right-0 px-container-padding-desktop pt-8 pb-8 bg-gradient-to-t from-background via-background/95 to-transparent transition-all duration-500 ease-out z-50 pointer-events-none ${isLaunching ? "opacity-100 translate-y-0 pointer-events-auto" : "opacity-0 translate-y-4"
+          className={`fixed bottom-0 left-0 ${isCollapsed ? "md:left-16" : "md:left-72"} right-0 px-container-padding-desktop pt-8 pb-8 bg-gradient-to-t from-background via-background/95 to-transparent transition-all duration-500 ease-out z-50 pointer-events-none ${isLaunching ? "opacity-100 translate-y-0 pointer-events-auto" : "opacity-0 translate-y-4"
             }`}
         >
           <div className="max-w-4xl mx-auto h-14 rounded-full glass-pane border border-white/10" />
