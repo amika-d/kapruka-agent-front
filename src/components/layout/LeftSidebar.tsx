@@ -21,7 +21,7 @@ export default function LeftSidebar() {
     { href: "/", label: "Home", icon: "home" },
     // { href: "/collections", label: "Collections", icon: "dashboard_customize" },
 
-    // { href: "/cart", label: "Cart", icon: "shopping_cart" }
+    { href: "/try-on", label: "Try On", icon: "" }
   ];
 
   const bottomItems = [
