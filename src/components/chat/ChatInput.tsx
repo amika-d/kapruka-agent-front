@@ -66,7 +66,7 @@ export default function ChatInput({
             <div className="px-6 pt-4 pb-2">
               <div className="relative group/preview inline-block">
                 {/* Thumbnail with glass styling */}
-                <div className="relative w-20 h-20 rounded-xl overflow-hidden border border-primary/30 shadow-lg shadow-primary/5">
+                <div className="relative w-20 h-20 rounded-2xl overflow-hidden border border-primary/30 shadow-lg shadow-primary/5">
                   <img
                     alt="Uploaded product"
                     className="w-full h-full object-cover"

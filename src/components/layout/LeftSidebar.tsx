@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 
+
 interface ChatSession {
   session_id: string;
   title: string;
@@ -17,11 +18,19 @@ export default function LeftSidebar() {
   const router = useRouter();
   const API = process.env.NEXT_PUBLIC_API_URL || "";
 
-  const navItems = [
+  const navItems: Array<{ href: string; label: string; icon?: string; svg?: React.ReactNode }> = [
     { href: "/", label: "Home", icon: "home" },
     // { href: "/collections", label: "Collections", icon: "dashboard_customize" },
 
-    { href: "/try-on", label: "Try On", icon: "" }
+    {
+      href: "/try-on",
+      label: "Try-On",
+      svg: (
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-shirt">
+          <path d="M20.38 3.46 16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.47a1 1 0 0 0 .99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.84l.58-3.47a2 2 0 0 0-1.34-2.23z" />
+        </svg>
+      ),
+    },
   ];
 
   const bottomItems = [
@@ -97,7 +106,11 @@ export default function LeftSidebar() {
                 : "text-on-surface-variant/70 hover:bg-white/5"
                 }`}
             >
-              <span className="material-symbols-outlined">{item.icon}</span>
+              {item.svg ? (
+                <span className="flex items-center justify-center w-[24px] h-[24px] shrink-0">{item.svg}</span>
+              ) : (
+                <span className="material-symbols-outlined">{item.icon}</span>
+              )}
               <span className="font-body-md">{item.label}</span>
             </Link>
           );

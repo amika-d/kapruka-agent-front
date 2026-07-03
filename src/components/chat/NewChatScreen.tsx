@@ -65,6 +65,11 @@ export default function NewChatScreen() {
       ? `/c/${newSessionId}?q=${encodeURIComponent(text.trim())}`
       : `/c/${newSessionId}`;
 
+    // Stash image in sessionStorage so ChatInterface can pick it up after navigation
+    if (imageBase64) {
+      sessionStorage.setItem("pending_image", imageBase64);
+    }
+
     setTimeout(() => {
       router.push(url);
     }, 420); // matches the transition duration below
