@@ -188,9 +188,15 @@ export default function ChatInterface({ chatId, initialQuery }: ChatInterfacePro
   };
 
   useEffect(() => {
-    if (initialQuery && !hasSentInitialQuery.current && sessionId === chatId) {
-      hasSentInitialQuery.current = true;
-      handleSendMessage(initialQuery);
+    if (!hasSentInitialQuery.current && sessionId === chatId) {
+      // Pick up any image stashed by NewChatScreen before navigation
+      const pendingImage = sessionStorage.getItem("pending_image");
+      if (pendingImage) sessionStorage.removeItem("pending_image");
+
+      if (initialQuery || pendingImage) {
+        hasSentInitialQuery.current = true;
+        handleSendMessage(initialQuery || "", pendingImage ?? undefined);
+      }
     }
   }, [initialQuery, sessionId]);
 
