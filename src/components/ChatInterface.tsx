@@ -6,6 +6,7 @@ import ChatFeed from "./chat/ChatFeed";
 import ChatInput from "./chat/ChatInput";
 import { useCart } from "../lib/CartContext";
 import { useChat } from "../lib/chatContext";
+import { useSidebar } from "../lib/SidebarContext";
 
 interface ChatInterfaceProps {
   chatId: string;
@@ -16,6 +17,7 @@ export default function ChatInterface({ chatId, initialQuery }: ChatInterfacePro
   const { messages, setMessages, sessionId, setSessionId, history, setHistory } = useChat();
   const [isStreaming, setIsStreaming] = useState(false);
   const { cart, itemCount, setIsOpen: openCart } = useCart();
+  const { isCollapsed, setIsMobileOpen } = useSidebar();
 
   const hasSentInitialQuery = useRef(false);
   const historyLoaded = useRef(false);
@@ -202,10 +204,16 @@ export default function ChatInterface({ chatId, initialQuery }: ChatInterfacePro
 
   return (
     <>
-      <main className="ml-72 flex-1 flex flex-col h-screen relative overflow-y-auto no-scrollbar scroll-smooth bg-transparent">
+      <main className={`ml-0 ${isCollapsed ? "md:ml-16" : "md:ml-72"} flex-1 flex flex-col h-screen relative overflow-y-auto no-scrollbar scroll-smooth bg-transparent transition-all duration-300`}>
         {/* Top App Bar */}
-        <header className="fixed top-0 right-0 left-72 h-20 flex justify-between items-center px-container-padding-desktop z-40 bg-transparent">
+        <header className={`fixed top-0 right-0 left-0 ${isCollapsed ? "md:left-16" : "md:left-72"} h-20 flex justify-between items-center px-container-padding-desktop z-40 bg-transparent transition-all duration-300`}>
           <div className="flex items-center gap-4">
+            <button
+              onClick={() => setIsMobileOpen(true)}
+              className="md:hidden p-2 rounded-lg text-on-surface-variant hover:text-primary hover:bg-white/10 transition-colors"
+            >
+              <span className="material-symbols-outlined text-[24px]">menu</span>
+            </button>
             <span className="text-[24px] leading-[1.3] font-medium text-primary">
               Chat Console
             </span>
@@ -264,7 +272,7 @@ export default function ChatInterface({ chatId, initialQuery }: ChatInterfacePro
 
         {/* Background Atmospheric Elements */}
         <div className="fixed top-[-10%] right-[-5%] w-[40%] h-[40%] bg-primary/10 blur-[150px] rounded-full -z-10 animate-pulse pointer-events-none"></div>
-        <div className="fixed bottom-[-10%] left-72 w-[30%] h-[30%] bg-secondary/10 blur-[150px] rounded-full -z-10 pointer-events-none"></div>
+        <div className={`fixed bottom-[-10%] left-0 ${isCollapsed ? "md:left-16" : "md:left-72"} w-[30%] h-[30%] bg-secondary/10 blur-[150px] rounded-full -z-10 pointer-events-none transition-all duration-300`}></div>
       </main>
     </>
   );
