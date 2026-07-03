@@ -19,10 +19,12 @@ export default function ChatInterface({ chatId, initialQuery }: ChatInterfacePro
 
   const hasSentInitialQuery = useRef(false);
   const historyLoaded = useRef(false);
+  const abortRef = useRef<AbortController | null>(null);
 
   // When chatId changes, reset all chat state for the new session
   useEffect(() => {
     if (!chatId) return;
+    abortRef.current?.abort();
     // Always clear messages and history when mounting a new chat page
     setMessages([]);
     setHistory([]);
@@ -54,9 +56,14 @@ export default function ChatInterface({ chatId, initialQuery }: ChatInterfacePro
       .catch(() => { });
   }, [chatId]);
 
-  const handleSendMessage = async (text: string) => {
+  const handleSendMessage = async (text: string, imageBase64?: string) => {
     const userMsgId = Date.now().toString();
-    const userMsg: ChatMessage = { id: userMsgId, role: "user", content: text };
+    const userMsg: ChatMessage = {
+      id: userMsgId,
+      role: "user",
+      content: text,
+      imageBase64: imageBase64,
+    };
 
     const agentMsgId = (Date.now() + 1).toString();
     const agentMsg: ChatMessage = { id: agentMsgId, role: "assistant", content: "" };
@@ -65,15 +72,20 @@ export default function ChatInterface({ chatId, initialQuery }: ChatInterfacePro
     setMessages((prev) => [...prev, userMsg, agentMsg]);
     setIsStreaming(true);
 
+    const controller = new AbortController();
+    abortRef.current = controller;
+
     try {
       const res = await fetch(`${apiURL}/api/v1/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        signal: controller.signal,
         body: JSON.stringify({
           session_id: sessionId,
           message: text,
           history: history,
-          cart: cart.items
+          cart: cart.items,
+          image_base64: imageBase64 ?? null,
         }),
       });
 
@@ -159,11 +171,20 @@ export default function ChatInterface({ chatId, initialQuery }: ChatInterfacePro
           }
         }
       }
-    } catch (e) {
-      console.error(e);
+    } catch (e: any) {
+      if (e?.name === "AbortError") {
+        console.log("Chat stream aborted by user or navigation");
+      } else {
+        console.error(e);
+      }
     } finally {
       setIsStreaming(false);
     }
+  };
+
+  const handleAbort = () => {
+    abortRef.current?.abort();
+    setIsStreaming(false);
   };
 
   useEffect(() => {
@@ -194,9 +215,9 @@ export default function ChatInterface({ chatId, initialQuery }: ChatInterfacePro
             )} */}
           </div>
           <div className="flex items-center gap-4">
-            <span className="material-symbols-outlined text-on-surface-variant cursor-pointer hover:text-primary transition-colors">
+            {/* <span className="material-symbols-outlined text-on-surface-variant cursor-pointer hover:text-primary transition-colors">
               notifications
-            </span>
+            </span> */}
 
             {/* Cart button with badge */}
             <button
@@ -218,7 +239,7 @@ export default function ChatInterface({ chatId, initialQuery }: ChatInterfacePro
               <img
                 className="w-full h-full object-cover"
                 alt="User Profile"
-                src="https://lh3.googleusercontent.com/aida-public/AB6AXuDo4F-aHpDD-1ShNjtf3GJjKRDhmsV8cYXZGqkcWsa-Ce3wcsqG6QtXOv0L668MDXmAt4-PrOMl3wmnRMwy3Ruw095Y1CIgcqzBmIs7-RXF4sQHmVA6ZtAp2i0A9089eP-WVgzDs9m9qH3ftQFGm5M_g6t5_pLTbQ8Kin8I17s_WWsUQAP6rLWzYfiL-6Vc0CuPeUUNg837UBHEeZHWnhqjcnl6-LXzkqM-fVXv7qNH_Cs1PFzd7Fnj4lwh_6CdB2QPj7B3MEz5uMA"
+                src="/rick-dp.jpg"
               />
             </div>
           </div>
@@ -228,7 +249,12 @@ export default function ChatInterface({ chatId, initialQuery }: ChatInterfacePro
           messages={messages}
           isStreaming={isStreaming}
         />
-        <ChatInput onSendMessage={handleSendMessage} disabled={isStreaming} />
+        <ChatInput
+          onSendMessage={handleSendMessage}
+          disabled={isStreaming}
+          isStreaming={isStreaming}
+          onAbort={handleAbort}
+        />
 
         {/* Background Atmospheric Elements */}
         <div className="fixed top-[-10%] right-[-5%] w-[40%] h-[40%] bg-primary/10 blur-[150px] rounded-full -z-10 animate-pulse pointer-events-none"></div>

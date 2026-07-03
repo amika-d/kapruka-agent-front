@@ -25,6 +25,7 @@ export interface ChatMessage {
   role: "user" | "assistant" | "tool";
   content: string;
   timestamp?: string;
+  imageBase64?: string;
   thinking?: ThinkingEvent[];
   ui?: {
     component: string;
