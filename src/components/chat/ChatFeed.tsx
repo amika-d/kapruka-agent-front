@@ -48,9 +48,23 @@ export default function ChatFeed({ messages, isStreaming }: ChatFeedProps) {
             /* ── User Message ── */
             <div className="flex flex-col gap-2 items-end max-w-[80%] ml-auto my-6">
               <div className="glass-pane p-6 rounded-2xl rounded-tr-none">
-                <p className="text-[16px] leading-relaxed text-on-surface whitespace-pre-wrap">
-                  {msg.content}
-                </p>
+                {/* Attached image preview */}
+                {msg.imageBase64 && (
+                  <div className="mb-3">
+                    <div className="relative w-32 h-32 rounded-xl overflow-hidden border border-primary/20">
+                      <img
+                        alt="Attached product"
+                        className="w-full h-full object-cover"
+                        src={`data:image/jpeg;base64,${msg.imageBase64}`}
+                      />
+                    </div>
+                  </div>
+                )}
+                {msg.content && (
+                  <p className="text-[16px] leading-relaxed text-on-surface whitespace-pre-wrap">
+                    {msg.content}
+                  </p>
+                )}
               </div>
               <span className="text-[10px] leading-none tracking-[0.05em] font-medium text-on-surface-variant/50 self-end">
                 {formatTime(msg.timestamp)}

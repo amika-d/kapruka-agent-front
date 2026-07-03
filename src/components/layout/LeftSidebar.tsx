@@ -19,9 +19,9 @@ export default function LeftSidebar() {
 
   const navItems = [
     { href: "/", label: "Home", icon: "home" },
-    { href: "/collections", label: "Collections", icon: "dashboard_customize" },
+    // { href: "/collections", label: "Collections", icon: "dashboard_customize" },
 
-    { href: "/cart", label: "Cart", icon: "shopping_cart" }
+    // { href: "/cart", label: "Cart", icon: "shopping_cart" }
   ];
 
   const bottomItems = [
