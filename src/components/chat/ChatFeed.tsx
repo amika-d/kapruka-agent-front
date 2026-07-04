@@ -2,6 +2,7 @@
 
 import { ChatMessage, ThinkingEvent } from "../../types/schemas";
 import ProductCarousel from "../generative/ProductCarousel";
+import OrderTimeline from "../generative/OrderTimeline";
 import ThinkingProcess from "./ThinkingProcess";
 import { useEffect, useRef } from "react";
 
@@ -88,20 +89,26 @@ export default function ChatFeed({ messages, isStreaming }: ChatFeedProps) {
                 </p>
               )}
 
-              {/* Product Carousel — only show after text has started streaming */}
-              {msg.content && msg.ui && msg.ui.component === "ProductCarousel" && (
-                <div className="mt-4">
-                  <ProductCarousel items={msg.ui.props.items} />
+              {/* Generative UI components */}
+              {msg.ui && (
+                <div className="mt-3">
+                  {msg.ui.component === "ProductCarousel" && msg.content && (
+                    <div>
+                      <ProductCarousel items={msg.ui.props.items} />
+                      {/* <div className="flex gap-3 mt-5">
+                        <button className="px-5 py-2.5 rounded-full bg-primary text-on-primary text-[13px] leading-none tracking-[0.03em] font-semibold hover:shadow-lg hover:shadow-primary/20 transition-all active:scale-95">
+                          Purchase via Kiyanna
+                        </button>
+                        <button className="px-5 py-2.5 rounded-full bg-white/5 border border-white/10 text-on-surface text-[13px] leading-none tracking-[0.03em] font-semibold hover:bg-white/10 transition-all active:scale-95">
+                          Add to Collection
+                        </button>
+                      </div> */}
+                    </div>
+                  )}
 
-                  {/* Action Buttons */}
-                  <div className="flex gap-3 mt-5">
-                    <button className="px-5 py-2.5 rounded-full bg-primary text-on-primary text-[13px] leading-none tracking-[0.03em] font-semibold hover:shadow-lg hover:shadow-primary/20 transition-all active:scale-95">
-                      Purchase via Kiyanna
-                    </button>
-                    <button className="px-5 py-2.5 rounded-full bg-white/5 border border-white/10 text-on-surface text-[13px] leading-none tracking-[0.03em] font-semibold hover:bg-white/10 transition-all active:scale-95">
-                      Add to Collection
-                    </button>
-                  </div>
+                  {msg.ui.component === "OrderTimeline" && (
+                    <OrderTimeline orderStatus={msg.ui.props.orderStatus} />
+                  )}
                 </div>
               )}
             </div>

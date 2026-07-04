@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState, useRef, Suspense } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useEffect, useState, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { useChat } from "../../../src/lib/chatContext";
 
 function formatLKR(n: number) {
   return `LKR ${n.toLocaleString("en-LK", { minimumFractionDigits: 2 })}`;
@@ -12,27 +13,17 @@ function useCountdown(targetISO: string | null) {
   const [remaining, setRemaining] = useState<string>("59:59");
 
   useEffect(() => {
-    if (!targetISO) {
-      // Default: 60 min from now
-      const target = Date.now() + 60 * 60 * 1000;
-      const tick = () => {
-        const diff = Math.max(0, target - Date.now());
-        const m = Math.floor(diff / 60000);
-        const s = Math.floor((diff % 60000) / 1000);
-        setRemaining(`${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`);
-      };
-      tick();
-      const id = setInterval(tick, 1000);
-      return () => clearInterval(id);
-    }
+    const target = targetISO
+      ? new Date(targetISO).getTime()
+      : Date.now() + 60 * 60 * 1000;
 
-    const target = new Date(targetISO).getTime();
     const tick = () => {
       const diff = Math.max(0, target - Date.now());
       const m = Math.floor(diff / 60000);
       const s = Math.floor((diff % 60000) / 1000);
       setRemaining(`${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`);
     };
+
     tick();
     const id = setInterval(tick, 1000);
     return () => clearInterval(id);
@@ -43,7 +34,7 @@ function useCountdown(targetISO: string | null) {
 
 function CheckoutSuccessContent() {
   const params = useSearchParams();
-  const router = useRouter();
+  const { sessionId } = useChat();
 
   const orderNumber = params.get("order_number") || "";
   const payLink = params.get("pay_link") || "";
@@ -62,15 +53,18 @@ function CheckoutSuccessContent() {
   }
 
   const trackUrl = orderNumber
-    ? `/?q=track+order+${encodeURIComponent(orderNumber)}`
+    ? (sessionId ? `/c/${sessionId}?q=track+order+${encodeURIComponent(orderNumber)}` : `/?q=track+order+${encodeURIComponent(orderNumber)}`)
     : "/";
 
   return (
-    <div className="min-h-screen bg-background text-on-background flex flex-col items-center justify-center px-6 py-16">
+    <div
+      style={{ position: "fixed", inset: 0 }}
+      className="overflow-y-auto bg-background text-on-background flex flex-col items-center justify-center px-6 py-16"
+    >
       {/* Glow */}
       <div className="fixed top-[-15%] left-1/2 -translate-x-1/2 w-[50%] h-[40%] bg-primary/10 blur-[150px] rounded-full -z-10 pointer-events-none" />
 
-      <div className="w-full max-w-lg flex flex-col gap-6">
+      <div style={{ width: "100%", maxWidth: "512px" }} className="flex flex-col gap-6">
         {/* Success card */}
         <div className="glass-pane rounded-3xl p-8 flex flex-col items-center gap-5 text-center">
           {/* Checkmark */}
@@ -162,7 +156,7 @@ function CheckoutSuccessContent() {
             </Link>
           )}
           <Link
-            href="/"
+            href={sessionId ? `/c/${sessionId}?order_success=${encodeURIComponent(orderNumber)}` : `/?order_success=${encodeURIComponent(orderNumber)}`}
             className="flex-1 py-3 rounded-xl border border-outline-variant/30 bg-white/5 hover:bg-white/10 text-on-surface text-[14px] font-semibold flex items-center justify-center gap-2 transition-all"
           >
             <span className="material-symbols-outlined text-[18px] text-on-surface-variant">home</span>
@@ -170,14 +164,14 @@ function CheckoutSuccessContent() {
           </Link>
         </div>
       </div>
-    </div>
+    </div >
   );
 }
 
 export default function CheckoutSuccessPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-background text-on-background flex items-center justify-center">
+      <div style={{ position: "fixed", inset: 0 }} className="bg-background text-on-background flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>
     }>

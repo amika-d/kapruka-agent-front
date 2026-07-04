@@ -13,6 +13,8 @@ interface ChatContextValue {
     setSessionId: React.Dispatch<React.SetStateAction<string>>;
     history: any[];
     setHistory: React.Dispatch<React.SetStateAction<any[]>>;
+    sendMessage?: (text: string) => void;
+    setSendMessage: (fn?: (text: string) => void) => void;
 }
 
 const ChatContext = createContext<ChatContextValue | undefined>(undefined);
@@ -23,6 +25,11 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     const [history, setHistory] = useState<any[]>([]);
     // Initialize as empty string — set on client only to avoid SSR hydration mismatch
     const [sessionId, setSessionId] = useState<string>('');
+    const [sendMessage, setSendMessageState] = useState<((text: string) => void) | undefined>(undefined);
+
+    const setSendMessage = (fn?: (text: string) => void) => {
+        setSendMessageState(() => fn);
+    };
 
     useEffect(() => {
         // Only generate a UUID on the client, never on the server
@@ -34,7 +41,8 @@ export function ChatProvider({ children }: { children: ReactNode }) {
             messages, setMessages,
             events, setEvents,
             sessionId, setSessionId,
-            history, setHistory
+            history, setHistory,
+            sendMessage, setSendMessage
         }}>
             {children}
         </ChatContext.Provider>

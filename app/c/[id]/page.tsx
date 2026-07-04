@@ -6,12 +6,13 @@ export default async function ChatPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ q?: string }>;
+  searchParams: Promise<{ q?: string; order_success?: string }>;
 }) {
   const resolvedParams = await params;
   const resolvedSearchParams = await searchParams;
   const chatId = resolvedParams.id;
   const initialQuery = resolvedSearchParams.q;
+  const orderSuccess = resolvedSearchParams.order_success;
 
   return (
     <>
@@ -21,7 +22,7 @@ export default async function ChatPage({
 
       <div className="relative z-10 flex h-screen overflow-hidden w-full">
         <LeftSidebar />
-        <ChatInterface chatId={chatId} initialQuery={initialQuery} />
+        <ChatInterface chatId={chatId} initialQuery={initialQuery} orderSuccess={orderSuccess} />
       </div>
     </>
   );

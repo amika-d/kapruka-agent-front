@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useCart } from "../../src/lib/CartContext";
 import type { CartItem } from "../../src/lib/CartContext";
+import { useChat } from "../../src/lib/chatContext";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -103,6 +104,7 @@ function OrderSummary({
 export default function CheckoutPage() {
   const router = useRouter();
   const { cart, subtotal, total, clearCart } = useCart();
+  const { sessionId } = useChat();
   const apiURL = process.env.NEXT_PUBLIC_API_URL || "";
 
   const [form, setForm] = useState<FormState>({
@@ -124,6 +126,7 @@ export default function CheckoutPage() {
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
+  const [orderPlaced, setOrderPlaced] = useState(false);
   const [cartIssues, setCartIssues] = useState<string[]>([]);
   const [giftSuggesting, setGiftSuggesting] = useState(false);
   const [giftPrompt, setGiftPrompt] = useState("");
@@ -132,12 +135,12 @@ export default function CheckoutPage() {
   const cityDebounce = useRef<ReturnType<typeof setTimeout> | null>(null);
   const cityDropdownRef = useRef<HTMLDivElement>(null);
 
-  // Redirect if cart is empty
+  // Redirect if cart is empty (unless we just placed an order or are submitting)
   useEffect(() => {
-    if (cart.items.length === 0) {
-      router.replace("/");
+    if (cart.items.length === 0 && !orderPlaced && !submitting) {
+      router.replace(sessionId ? `/c/${sessionId}` : "/");
     }
-  }, [cart.items.length, router]);
+  }, [cart.items.length, router, sessionId, orderPlaced, submitting]);
 
   // Close city dropdown on outside click
   useEffect(() => {
@@ -224,6 +227,34 @@ export default function CheckoutPage() {
     e.preventDefault();
     if (!validate()) return;
 
+    const validationErrors: Record<string, string> = {};
+
+    if (!form.recipientPhone || form.recipientPhone.length < 7) {
+      validationErrors.recipientPhone = "Please enter a valid phone number (at least 7 digits)";
+    }
+
+    if (!form.deliveryAddress || form.deliveryAddress.trim().length < 3) {
+      validationErrors.deliveryAddress = "Please enter a delivery address";
+    }
+
+    if (!form.recipientName || form.recipientName.trim().length < 2) {
+      validationErrors.recipientName = "Please enter recipient name";
+    }
+
+    if (!form.deliveryCityResolved) {
+      validationErrors.deliveryCity = "Please select a valid city from the dropdown";
+    }
+
+    if (!form.deliveryDate) {
+      validationErrors.deliveryDate = "Please select a delivery date";
+    }
+
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      setSubmitting(false);
+      return;
+    }
+
     setSubmitting(true);
     setCartIssues([]);
 
@@ -245,7 +276,7 @@ export default function CheckoutPage() {
           delivery_address: form.deliveryAddress,
           delivery_date: form.deliveryDate,
           gift_message: form.giftMessage || null,
-          session_id: "checkout-page",
+          session_id: sessionId || "checkout-page",
         }),
       });
 
@@ -257,10 +288,13 @@ export default function CheckoutPage() {
         } else {
           setErrors({ submit: typeof detail === "string" ? detail : "Checkout failed. Please try again." });
         }
+        setSubmitting(false);
         return;
       }
 
       const data = await res.json();
+      console.log("CHECKOUT RESPONSE:", JSON.stringify(data));
+      setOrderPlaced(true);
 
       // Clear cart and navigate to success
       clearCart();
@@ -268,11 +302,12 @@ export default function CheckoutPage() {
         order_number: data.order_number || "",
         pay_link: data.pay_link || "",
         total: String(data.total || subtotal),
+        expires_at: data.expires_at || "",
       });
+      console.log("PARAMS:", params.toString());
       router.push(`/checkout/success?${params.toString()}`);
     } catch {
       setErrors({ submit: "Network error. Please try again." });
-    } finally {
       setSubmitting(false);
     }
   }
@@ -286,11 +321,11 @@ export default function CheckoutPage() {
     form.deliveryDate;
 
   return (
-    <div className="min-h-screen bg-background text-on-background">
+    <div className="w-full flex-1 h-screen overflow-y-auto bg-background text-on-background">
       {/* Header */}
       <header className="fixed top-0 inset-x-0 h-16 z-40 flex items-center px-8 gap-4 bg-surface-container/80 backdrop-blur-xl border-b border-outline-variant/20">
         <Link
-          href="/"
+          href={sessionId ? `/c/${sessionId}` : "/"}
           className="flex items-center gap-2 text-on-surface-variant hover:text-primary transition-colors group"
         >
           <span className="material-symbols-outlined text-[20px] group-hover:-translate-x-0.5 transition-transform">
@@ -499,10 +534,15 @@ export default function CheckoutPage() {
               {/* Submit button */}
               <button
                 type="submit"
-                disabled={!isFormValid || submitting}
+                disabled={!isFormValid || submitting || orderPlaced}
                 className="mt-2 w-full py-4 rounded-xl bg-primary text-on-primary font-bold text-[15px] flex items-center justify-center gap-2 hover:shadow-lg hover:shadow-primary/20 active:scale-[0.98] transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:shadow-none"
               >
-                {submitting ? (
+                {orderPlaced ? (
+                  <>
+                    <span className="material-symbols-outlined text-[20px] text-emerald-300">check_circle</span>
+                    Order Placed! Redirecting...
+                  </>
+                ) : submitting ? (
                   <>
                     <span className="w-4 h-4 border-2 border-on-primary/40 border-t-on-primary rounded-full animate-spin" />
                     Placing Order...
@@ -555,8 +595,7 @@ function Field({
 }
 
 const inputCls = (hasError: boolean) =>
-  `w-full glass-well rounded-xl px-4 py-3 text-[14px] text-on-surface placeholder:text-on-surface-variant/40 outline-none focus:ring-1 transition-all ${
-    hasError
-      ? "ring-1 ring-error/60 focus:ring-error"
-      : "focus:ring-primary/50"
+  `w-full glass-well rounded-xl px-4 py-3 text-[14px] text-on-surface placeholder:text-on-surface-variant/40 outline-none focus:ring-1 transition-all ${hasError
+    ? "ring-1 ring-error/60 focus:ring-error"
+    : "focus:ring-primary/50"
   }`;
