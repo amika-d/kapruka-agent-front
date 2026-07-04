@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useSidebar } from "@/src/lib/SidebarContext";
+import { useChat } from "@/src/lib/chatContext";
 
 
 interface ChatSession {
@@ -13,12 +14,19 @@ interface ChatSession {
   message_count: number;
 }
 
-export default function LeftSidebar() {
+interface LeftSidebarProps {
+  onDemoTrack?: () => void;
+  isCollapsed?: boolean;
+}
+
+export default function LeftSidebar({ onDemoTrack, isCollapsed: propIsCollapsed }: LeftSidebarProps = {}) {
   const [sessions, setSessions] = useState<ChatSession[]>([]);
   const pathname = usePathname();
   const router = useRouter();
   const API = process.env.NEXT_PUBLIC_API_URL || "";
-  const { isCollapsed, isMobileOpen, toggleCollapse, setIsMobileOpen } = useSidebar();
+  const { isCollapsed: contextIsCollapsed, isMobileOpen, toggleCollapse, setIsMobileOpen } = useSidebar();
+  const { sendMessage } = useChat();
+  const isCollapsed = propIsCollapsed !== undefined ? propIsCollapsed : contextIsCollapsed;
 
   const navItems: Array<{ href: string; label: string; icon?: string; svg?: React.ReactNode }> = [
     { href: "/", label: "Home", icon: "home" },
@@ -225,6 +233,28 @@ export default function LeftSidebar() {
 
         {/* Bottom Actions */}
         <div className="mt-auto px-3 pb-stack-lg">
+          {/* Demo hint — tracking */}
+          {!isCollapsed && (
+            <button
+              onClick={() => {
+                if (onDemoTrack) {
+                  onDemoTrack();
+                } else if (sendMessage) {
+                  sendMessage("track order VPAY827982BA");
+                } else {
+                  const newSessionId = crypto.randomUUID();
+                  router.push(`/c/${newSessionId}?q=${encodeURIComponent("track order VPAY827982BA")}`);
+                }
+              }}
+              className="w-full flex items-center gap-2 px-3 py-2 mb-2 rounded-lg text-on-surface-variant/40 hover:text-primary hover:bg-primary/5 transition-all duration-300 group text-left"
+              title="See a live tracking example"
+            >
+              <span className="material-symbols-outlined text-[15px] shrink-0 group-hover:text-primary transition-colors">
+                local_shipping
+              </span>
+              <span className="text-[11px] leading-tight">Try tracking a delivered order</span>
+            </button>
+          )}
           <div className="space-y-1">
             {bottomItems.map((item) => (
               <button

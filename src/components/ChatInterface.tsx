@@ -7,20 +7,23 @@ import ChatInput from "./chat/ChatInput";
 import { useCart } from "../lib/CartContext";
 import { useChat } from "../lib/chatContext";
 import { useSidebar } from "../lib/SidebarContext";
+import LeftSidebar from "./layout/LeftSidebar";
 
 interface ChatInterfaceProps {
   chatId: string;
   initialQuery?: string;
+  orderSuccess?: string;
 }
 
-export default function ChatInterface({ chatId, initialQuery }: ChatInterfaceProps) {
-  const { messages, setMessages, sessionId, setSessionId, history, setHistory } = useChat();
+export default function ChatInterface({ chatId, initialQuery, orderSuccess }: ChatInterfaceProps) {
+  const { messages, setMessages, sessionId, setSessionId, history, setHistory, setSendMessage } = useChat();
   const [isStreaming, setIsStreaming] = useState(false);
   const { cart, itemCount, setIsOpen: openCart } = useCart();
   const { isCollapsed, setIsMobileOpen } = useSidebar();
 
   const hasSentInitialQuery = useRef(false);
   const historyLoaded = useRef(false);
+  const hasTriggeredOrderSuccess = useRef(false);
   const abortRef = useRef<AbortController | null>(null);
 
   // When chatId changes, reset all chat state for the new session
@@ -33,6 +36,7 @@ export default function ChatInterface({ chatId, initialQuery }: ChatInterfacePro
     setSessionId(chatId);
     hasSentInitialQuery.current = false;
     historyLoaded.current = false;
+    hasTriggeredOrderSuccess.current = false;
   }, [chatId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Load existing session history when visiting /c/[id]
@@ -58,7 +62,7 @@ export default function ChatInterface({ chatId, initialQuery }: ChatInterfacePro
       .catch(() => { });
   }, [chatId]);
 
-  const handleSendMessage = async (text: string, imageBase64?: string) => {
+  const handleSendMessage = async (text: string, imageBase64?: string, hiddenUserMessage: boolean = false) => {
     const userMsgId = Date.now().toString();
     const userMsg: ChatMessage = {
       id: userMsgId,
@@ -71,8 +75,16 @@ export default function ChatInterface({ chatId, initialQuery }: ChatInterfacePro
     const agentMsg: ChatMessage = { id: agentMsgId, role: "assistant", content: "" };
     const apiURL = process.env.NEXT_PUBLIC_API_URL || "";
 
-    setMessages((prev) => [...prev, userMsg, agentMsg]);
+    if (hiddenUserMessage) {
+      setMessages((prev) => [...prev, agentMsg]);
+    } else {
+      setMessages((prev) => [...prev, userMsg, agentMsg]);
+    }
     setIsStreaming(true);
+
+    if (typeof window !== "undefined" && window.location.pathname === "/") {
+      window.history.replaceState(null, "", `/c/${sessionId}`);
+    }
 
     const controller = new AbortController();
     abortRef.current = controller;
@@ -190,6 +202,11 @@ export default function ChatInterface({ chatId, initialQuery }: ChatInterfacePro
   };
 
   useEffect(() => {
+    setSendMessage?.(() => (text: string) => handleSendMessage(text));
+    return () => setSendMessage?.(undefined);
+  }, [setSendMessage]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
     if (!hasSentInitialQuery.current && sessionId === chatId) {
       // Pick up any image stashed by NewChatScreen before navigation
       const pendingImage = sessionStorage.getItem("pending_image");
@@ -202,8 +219,25 @@ export default function ChatInterface({ chatId, initialQuery }: ChatInterfacePro
     }
   }, [initialQuery, sessionId]);
 
+  useEffect(() => {
+    if (!hasTriggeredOrderSuccess.current && sessionId === chatId && orderSuccess) {
+      hasTriggeredOrderSuccess.current = true;
+      if (typeof window !== "undefined" && window.history?.replaceState) {
+        const url = new URL(window.location.href);
+        url.searchParams.delete("order_success");
+        window.history.replaceState({}, "", url.toString());
+      }
+      handleSendMessage(
+        `Order completed with order number ${orderSuccess}`,
+        undefined,
+        true
+      );
+    }
+  }, [orderSuccess, sessionId, chatId]);
+
   return (
     <>
+
       <main className={`ml-0 ${isCollapsed ? "md:ml-16" : "md:ml-72"} flex-1 flex flex-col h-screen relative overflow-y-auto no-scrollbar scroll-smooth bg-transparent transition-all duration-300`}>
         {/* Top App Bar */}
         <header className={`fixed top-0 right-0 left-0 ${isCollapsed ? "md:left-16" : "md:left-72"} h-20 flex justify-between items-center px-container-padding-desktop z-40 bg-transparent transition-all duration-300`}>

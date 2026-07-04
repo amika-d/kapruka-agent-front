@@ -156,7 +156,7 @@ export default function NewChatScreen() {
                     Trending Now
                   </span>
                   <h3 className="text-[24px] leading-[1.3] font-medium text-on-surface">
-                    Curated Festive Collection 2024
+                    Curated Festive Collection 2026
                   </h3>
                   <p className="text-[16px] leading-relaxed text-on-surface-variant/70">
                     Discover hand-picked premium items for the upcoming season, filtered for your preferences.
