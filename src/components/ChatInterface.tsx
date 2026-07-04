@@ -89,6 +89,17 @@ export default function ChatInterface({ chatId, initialQuery, orderSuccess }: Ch
     const controller = new AbortController();
     abortRef.current = controller;
 
+    console.log("SENDING TO /chat:", {
+      session_id: sessionId,
+      message: text,
+      history_length: history.length,
+      history_last_3: history.slice(-3),
+      cart_count: cart.items?.length,
+      cart_items: cart.items
+    });
+
+    let finalAssistantText = "";  // ← accumulate here
+
     try {
       const res = await fetch(`${apiURL}/api/v1/chat`, {
         method: "POST",
@@ -115,7 +126,6 @@ export default function ChatInterface({ chatId, initialQuery, orderSuccess }: Ch
         if (value) {
           buffer += decoder.decode(value, { stream: true });
           const parts = buffer.split("\n\n");
-
           buffer = parts.pop() || "";
 
           for (const part of parts) {
@@ -133,6 +143,7 @@ export default function ChatInterface({ chatId, initialQuery, orderSuccess }: Ch
               const data = JSON.parse(dataStr);
 
               if (data.type === "text") {
+                finalAssistantText += data.content;  // ← accumulate
                 setMessages((prev) =>
                   prev.map((msg) =>
                     msg.id === agentMsgId
@@ -165,7 +176,6 @@ export default function ChatInterface({ chatId, initialQuery, orderSuccess }: Ch
                   )
                 );
               } else if (data.type === "thinking") {
-                // Store thinking events inside the message itself (not global state)
                 const event: ThinkingEvent = {
                   step: data.step,
                   detail: data.detail,
@@ -185,6 +195,14 @@ export default function ChatInterface({ chatId, initialQuery, orderSuccess }: Ch
           }
         }
       }
+
+      // ← ADD: update history after stream completes
+      setHistory((prev) => [
+        ...prev,
+        { role: "user", content: text },
+        { role: "assistant", content: finalAssistantText },
+      ]);
+
     } catch (e: any) {
       if (e?.name === "AbortError") {
         console.log("Chat stream aborted by user or navigation");
@@ -311,4 +329,3 @@ export default function ChatInterface({ chatId, initialQuery, orderSuccess }: Ch
     </>
   );
 }
-
