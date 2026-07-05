@@ -4,7 +4,15 @@ import { useRef, useState, useEffect, useCallback } from "react";
 import ProductCard from "./ProductCard";
 import { ProductCardType } from "../../types/schemas";
 
-export default function ProductCarousel({ items }: { items: ProductCardType[] }) {
+export default function ProductCarousel({
+  items,
+  onTryOn,
+  showTryOnButton = false,
+}: {
+  items: ProductCardType[];
+  onTryOn?: (product: ProductCardType) => void;
+  showTryOnButton?: boolean;
+}) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [activeIndex, setActiveIndex] = useState(0);
 
@@ -62,7 +70,13 @@ export default function ProductCarousel({ items }: { items: ProductCardType[] })
         className="flex gap-6 overflow-x-auto pb-4 snap-x no-scrollbar"
       >
         {items.map((item, idx) => (
-          <ProductCard key={item.product_id || idx} item={item} isHero={idx === 0} />
+          <ProductCard
+            key={item.product_id || idx}
+            item={item}
+            isHero={idx === 0}
+            onTryOn={onTryOn}
+            showTryOnButton={showTryOnButton}
+          />
         ))}
       </div>
 

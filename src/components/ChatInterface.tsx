@@ -29,7 +29,9 @@ export default function ChatInterface({ chatId, initialQuery, orderSuccess }: Ch
   // When chatId changes, reset all chat state for the new session
   useEffect(() => {
     if (!chatId) return;
-    abortRef.current?.abort();
+    if (abortRef.current && sessionId !== chatId) {
+      abortRef.current.abort();
+    }
     // Always clear messages and history when mounting a new chat page
     setMessages([]);
     setHistory([]);
@@ -50,10 +52,12 @@ export default function ChatInterface({ chatId, initialQuery, orderSuccess }: Ch
       .then((data) => {
         if (data?.messages?.length) {
           const loaded: ChatMessage[] = data.messages.map(
-            (m: { role: string; content: string }, i: number) => ({
+            (m: any, i: number) => ({
               id: `loaded-${i}`,
               role: m.role as "user" | "assistant",
-              content: m.content,
+              content: m.content || "",
+              thinking: m.thinking,
+              ui: m.ui,
             })
           );
           setMessages(loaded);
