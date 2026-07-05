@@ -21,8 +21,18 @@ export default function TryOnPage() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const isWearable = (item: ProductCardType) => {
+    const text = `${item.name} ${item.subtitle || ""}`.toLowerCase();
+    // Exclude cakes, flowers, chocolates, groceries, toys, electronics, greeting cards
+    if (/\b(cake|ribbon|gateau|torte|chocolate|flower|bouquet|roses|lily|gift box|hamper|toy|teddy|mug|perfume|phone|laptop|grocery|sweets|kavum|kokis|card|edible|fruit|plant)\b/i.test(text)) {
+      return false;
+    }
+    // Include known clothing/apparel keywords
+    return /\b(top|dress|shirt|blouse|saree|frock|lungi|skirt|trouser|pant|jacket|coat|tee|t-shirt|wear|cloth|garment|apparel|maternity|kurti|kaftan|denim|short|hoodie|sweater|silk|cotton|linen|lace|knit|crochet|peplum|suit)\b/i.test(text);
+  };
+
   const chatProducts: ProductCardType[] = messages.flatMap((msg) =>
-    msg.ui?.component === "ProductCarousel" ? msg.ui.props.items ?? [] : []
+    msg.ui?.component === "ProductCarousel" ? (msg.ui.props.items ?? []).filter(isWearable) : []
   );
 
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -178,23 +188,25 @@ export default function TryOnPage() {
 
                 {/* Trying-on preview card, sits under Your Photo */}
                 {selectedGarment ? (
-                  <div className="flex items-center gap-3 p-2.5 rounded-xl bg-white/5 border border-white/10">
-                    <img
-                      src={selectedGarment.image_url}
-                      alt={selectedGarment.name}
-                      className="w-24 h-24 rounded-lg object-cover shrink-0"
-                    />
-                    <div className="min-w-0 flex-1">
-                      <p className="text-[10px] text-on-surface-variant/50 uppercase tracking-widest leading-none mb-1">
-                        Trying on
-                      </p>
-                      <p className="text-xs font-medium text-on-surface truncate">
+                  <div className="flex flex-col gap-2 p-3 rounded-xl bg-white/5 border border-white/10">
+                    <p className="text-[10px] text-on-surface-variant/50 uppercase tracking-widest leading-none">
+                      Trying on
+                    </p>
+                    <div className="w-full aspect-square rounded-lg overflow-hidden bg-surface-container">
+                      <img
+                        src={selectedGarment.image_url}
+                        alt={selectedGarment.name}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="text-xs font-medium text-on-surface truncate min-w-0">
                         {selectedGarment.name}
                       </p>
+                      <p className="text-xs text-primary font-semibold shrink-0">
+                        LKR {selectedGarment.price.toLocaleString()}
+                      </p>
                     </div>
-                    <p className="text-xs text-primary font-semibold shrink-0">
-                      LKR {selectedGarment.price.toLocaleString()}
-                    </p>
                   </div>
                 ) : (
                   <div className="flex items-center justify-center p-2.5 rounded-xl border border-dashed border-white/10">
