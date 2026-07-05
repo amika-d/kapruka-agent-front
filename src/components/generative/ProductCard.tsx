@@ -5,9 +5,13 @@ import { useCart } from "../../lib/CartContext";
 export default function ProductCard({
   item,
   isHero = false,
+  onTryOn,
+  showTryOnButton = false,
 }: {
   item: ProductCardType;
   isHero?: boolean;
+  onTryOn?: (product: ProductCardType) => void;
+  showTryOnButton?: boolean;
 }) {
   const badge = item.badge || (isHero ? "Kiyanna's Choice" : undefined);
   const { addToCart } = useCart();
@@ -103,6 +107,15 @@ export default function ProductCard({
           </span>
           {!item.in_stock ? "Out of Stock" : added ? "Added!" : "Add to Cart"}
         </button>
+
+        {showTryOnButton && onTryOn && (
+          <button
+            onClick={() => onTryOn(item)}
+            className="w-full mt-2 py-2 rounded-full border border-primary text-primary text-xs font-semibold hover:bg-primary hover:text-on-primary transition-all"
+          >
+            👗 Try On
+          </button>
+        )}
       </div>
     </div>
   );

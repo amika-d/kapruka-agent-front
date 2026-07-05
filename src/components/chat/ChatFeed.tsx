@@ -1,6 +1,6 @@
 "use client";
 
-import { ChatMessage, ThinkingEvent } from "../../types/schemas";
+import { ChatMessage, ThinkingEvent, ProductCardType } from "../../types/schemas";
 import ProductCarousel from "../generative/ProductCarousel";
 import OrderTimeline from "../generative/OrderTimeline";
 import ThinkingProcess from "./ThinkingProcess";
@@ -9,9 +9,16 @@ import { useEffect, useRef } from "react";
 interface ChatFeedProps {
   messages: ChatMessage[];
   isStreaming: boolean;
+  onTryOn?: (product: ProductCardType) => void;
+  showTryOnButton?: boolean;
 }
 
-export default function ChatFeed({ messages, isStreaming }: ChatFeedProps) {
+export default function ChatFeed({
+  messages,
+  isStreaming,
+  onTryOn,
+  showTryOnButton = false,
+}: ChatFeedProps) {
   const endRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -94,7 +101,11 @@ export default function ChatFeed({ messages, isStreaming }: ChatFeedProps) {
                 <div className="mt-3">
                   {msg.ui.component === "ProductCarousel" && msg.content && (
                     <div>
-                      <ProductCarousel items={msg.ui.props.items} />
+                      <ProductCarousel
+                        items={msg.ui.props.items}
+                        onTryOn={onTryOn}
+                        showTryOnButton={showTryOnButton}
+                      />
                       {/* <div className="flex gap-3 mt-5">
                         <button className="px-5 py-2.5 rounded-full bg-primary text-on-primary text-[13px] leading-none tracking-[0.03em] font-semibold hover:shadow-lg hover:shadow-primary/20 transition-all active:scale-95">
                           Purchase via Kiyanna
