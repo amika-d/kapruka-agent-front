@@ -1,36 +1,106 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Kiyanna Frontend — Agentic E-Commerce & Virtual Try-On Experience 🛒✨
 
-## Getting Started
+The modern, responsive web application for **Kiyanna**, an AI-powered shopping assistant built for [Kapruka](https://www.kapruka.com). Built with **Next.js 15**, **React 19**, and **Tailwind CSS**, it features real-time Server-Sent Events (SSE) streaming, Generative UI components, seamless chat session persistence, and a dedicated **Virtual Try-On** studio.
 
-First, run the development server:
+---
+
+## 🌟 Key Features
+
+- **💬 Real-Time Generative UI & SSE Streaming**:
+  - Streams agent responses word-by-word with ultra-low latency.
+  - **Dynamic Product Carousels**: Renders interactive product cards directly inside the chat feed with prices, images, Add-to-Cart buttons, and "Try On" triggers.
+  - **Live Thinking Processes**: Displays collapsible accordions showing the AI's internal reasoning, search steps, and reflection checks in real time.
+  - **Interactive Order Tracking & Payment Cards**: Embeds live tracking timelines and instant Kapruka payment links within the conversation.
+- **👗 Dedicated Virtual Try-On Studio (`/tryon`)**:
+  - A specialized three-panel workspace allowing users to upload full-body photos and virtually test clothing items discovered during chat.
+  - Features an interactive **Product Strip** at the bottom that automatically hydrates with garments recommended in your conversation history.
+- **💾 Seamless Session & UI Persistence**:
+  - Backed by global React Contexts (`ChatContext`, `CartContext`, `SidebarContext`) and server-side storage.
+  - Refreshing the browser or navigating between `/c/[id]`, `/tryon`, and `/checkout/success` retains all chat messages, product carousels, thinking accordions, and shopping cart states without glitching or resetting.
+- **🎨 Premium Gemini-Style Aesthetics**:
+  - Sleek dark mode design with glassmorphism, subtle micro-animations, background ambient leak glows, and modern typography.
+  - Fully responsive layout featuring a collapsible desktop sidebar and smooth slide-over mobile drawer.
+- **🛍️ Integrated Checkout & Tracking Flows**:
+  - Full support for adding items to cart, specifying gift greetings and delivery dates, initiating Kapruka checkout, and tracking completed orders.
+
+---
+
+## 🛠️ Tech Stack
+
+- **Framework**: [Next.js 15](https://nextjs.org/) (App Router) & [React 19](https://react.dev/)
+- **Styling**: [Tailwind CSS 3.4](https://tailwindcss.com/) & Vanilla CSS (`index.css`)
+- **Icons**: [Google Material Symbols Outlined](https://fonts.google.com/icons)
+- **Language**: TypeScript
+- **Package Manager**: `pnpm`
+
+---
+
+## 🚀 Getting Started
+
+### 1. Prerequisites
+
+Ensure you have Node.js 18+ and `pnpm` installed:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install -g pnpm
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 2. Installation
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Navigate to the frontend directory and install dependencies:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+cd frontend
+pnpm install
+```
 
-## Learn More
+### 3. Environment Setup
 
-To learn more about Next.js, take a look at the following resources:
+Create a `.env.local` file in the `frontend/` directory pointing to your running backend API:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```env
+# URL of the Kiyanna Backend API
+NEXT_PUBLIC_API_URL="http://localhost:8000"
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### 4. Running the Development Server
 
-## Deploy on Vercel
+Start the Next.js development server:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```bash
+pnpm dev
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Open [http://localhost:3000](http://localhost:3000) with your browser to experience the assistant.
+
+---
+
+## 🗺️ Application Architecture & Routes
+
+- `app/page.tsx` — **Home / New Chat Screen**: Welcome screen with quick prompt starters and image upload capabilities.
+- `app/c/[id]/page.tsx` — **Active Chat Interface**: The primary conversational interface with sidebar navigation, streaming chat feed, and cart fab.
+- `app/tryon/page.tsx` — **Virtual Try-On Studio**: Dedicated workspace for testing apparel on uploaded user photos.
+- `app/checkout/success/page.tsx` — **Order Confirmation**: Celebratory order completion page with payment links and order tracking triggers.
+
+---
+
+## 🧩 Key Components
+
+```text
+src/components/
+├── ChatInterface.tsx        # Main orchestrator handling SSE fetching, aborts, and session hydration
+├── chat/
+│   ├── ChatFeed.tsx         # Renders message bubbles, thinking accordions, and UI payloads
+│   ├── ChatInput.tsx        # Auto-expanding multiline input with image attachment support
+│   └── ThinkingProcess.tsx  # Live reasoning accordion component
+├── generative/
+│   ├── ProductCard.tsx      # Individual product display card with Add-to-Cart and Try-On actions
+│   ├── ProductCarousel.tsx  # Horizontal scrolling product carousel embedded in chat
+│   ├── OrderTimeline.tsx    # Live order progress tracking visualization
+│   └── PayLinkCard.tsx      # Embedded Kapruka checkout payment button
+├── layout/
+│   ├── LeftSidebar.tsx      # Collapsible Gemini-style navigation sidebar
+│   └── CartFab.tsx          # Floating shopping cart button and drawer
+└── new-chat/
+    └── NewChatScreen.tsx    # Landing screen with conversational prompt starters
+```
