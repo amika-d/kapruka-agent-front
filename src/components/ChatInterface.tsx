@@ -26,24 +26,25 @@ export default function ChatInterface({ chatId, initialQuery, orderSuccess }: Ch
   const hasTriggeredOrderSuccess = useRef(false);
   const abortRef = useRef<AbortController | null>(null);
 
-  // When chatId changes, reset all chat state for the new session
+  // When chatId changes, reset all chat state only if switching to a DIFFERENT session
   useEffect(() => {
     if (!chatId) return;
-    if (abortRef.current && sessionId !== chatId) {
-      abortRef.current.abort();
+    if (sessionId !== chatId) {
+      if (abortRef.current) {
+        abortRef.current.abort();
+      }
+      setMessages([]);
+      setHistory([]);
+      setSessionId(chatId);
+      hasSentInitialQuery.current = false;
+      historyLoaded.current = false;
+      hasTriggeredOrderSuccess.current = false;
     }
-    // Always clear messages and history when mounting a new chat page
-    setMessages([]);
-    setHistory([]);
-    setSessionId(chatId);
-    hasSentInitialQuery.current = false;
-    historyLoaded.current = false;
-    hasTriggeredOrderSuccess.current = false;
-  }, [chatId]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [chatId, sessionId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Load existing session history when visiting /c/[id]
   useEffect(() => {
-    if (historyLoaded.current || !chatId) return;
+    if (historyLoaded.current || !chatId || sessionId === chatId && messages.length > 0) return;
     historyLoaded.current = true;
 
     const apiURL = process.env.NEXT_PUBLIC_API_URL || "";
@@ -60,7 +61,7 @@ export default function ChatInterface({ chatId, initialQuery, orderSuccess }: Ch
               ui: m.ui,
             })
           );
-          setMessages(loaded);
+          setMessages((prev) => (prev.length > 0 ? prev : loaded));
         }
       })
       .catch(() => { });
